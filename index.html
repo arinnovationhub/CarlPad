@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" ng-app="carlpad" ng-csp>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+  <link rel="stylesheet" href="css/site.css">
+  <script type='text/javascript' src='bower_components/angular/angular.js'></script>
+  <script src="js/app.js"></script>
+</head>
+<body>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="panel-title">
+        <h1>CARL PAD</h1>
+        <h3>Control your CARLBot with a gamepad</h3>
+      </div>
+    </div>
+    <div class="panel-body" ng-controller="GampadConfigurationCtrl">
+      <div class="panel" ng-class="{'panel-success': gamepad.connected, 'panel-danger': !gamepad.connected}">
+        <div class="panel-heading" >
+          <div class="panel-title">
+            <h3>Controller Configuration</h3>
+            <p ng-if="!gamepad.connected"> Controller Disconnected</p>
+            <p ng-if="gamepad.connected"> Controller: {{gamepad.gamepad.id}}</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div ng-if="gamepad.connected" class="container-fluid">
+            <p> {{gamepad}}</p>
+
+            <!--Button configuration panel-->
+            <div class="row">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <div class="panel-title">
+                    <h4>Button Configuration</h4>
+                  </div>
+                </div>
+                <div class="panel-body container-fluid">
+                  <div class="row">
+
+                    <!--single button configuration-->
+                    <div ng-repeat='button in gamepad.gamepad.buttons' class="col-xs-6 col-sm-5 col-md-4 col-lg-3 button-config">
+                      <div class="panel panel-default" ng-class="{'unselected':!gamepad.config.buttons[$index]}">
+                        <div class="panel-body container-fluid" ng-class="{'pressed':gamepad.gamepad.buttons[$index].value}">
+                          
+                          <div class="row">
+                            <div class="col-xs-6 col-lg-7">
+                              <label>
+                                <input type="checkbox" ng-model="gamepad.config.buttons[$index]">
+                                Button: {{$index +1}}
+                              </label>
+                            </div>
+
+                            <div class="col-xs-6 col-lg-5 pull-right">
+                              <label>
+                                Value: 
+                                <span class="button-value">{{gamepad.gamepad.buttons[$index].value}}</span>
+                              </label>
+                            </div>
+                          </div>
+
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

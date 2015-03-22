@@ -1,0 +1,7 @@
+html, body {
+    overflow-y: visible;
+}
+
+.button-config .panel {border-width: 4px}
+.button-config .panel.unselected { border-style: dashed;}
+.button-config .panel .pressed { background-color: #d9edf7;}
