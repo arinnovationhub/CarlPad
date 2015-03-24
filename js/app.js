@@ -1,5 +1,5 @@
 angular.module('carlpad', [])
-	.factory('gamepadService', ['$rootScope', '$interval', function ($rootScope, $interval) {
+	.factory('gamepadService', ['$rootScope', '$interval', '$filter', function ($rootScope, $interval, $filter) {
 
 		var gamepad;
 
@@ -17,6 +17,12 @@ angular.module('carlpad', [])
 		$interval(function () {
 			var gamepads = navigator.getGamepads();
 			var curGamepad = gamepads[0];
+
+			if (curGamepad != null) {
+				curGamepad.roundedAxes = curGamepad.axes.map(function (val) {
+					return $filter('number')(val, 2);
+				});
+			}
 
 			if (gamepad && !curGamepad) {
 				$rootScope.$broadcast('gamepad:disconnected')
@@ -49,10 +55,15 @@ angular.module('carlpad', [])
 			scope: {
 				gamepad: '=cpGamepadConfig'
 			},
-			link: function () {
-				console.log('button');
-			},
 			templateUrl: "html/button-configuration-directive.html"
+		}
+	}])
+	.directive('cpAxisConfig', [function () {
+		return {
+			scope: {
+				gamepad: '=cpGamepadConfig'
+			},
+			templateUrl: "html/axis-configuration-directive.html"
 		}
 	}])
 	.controller('GampadConfigurationCtrl', ['$scope', 'gamepadService', function ($scope, gamepadService) {

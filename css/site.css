@@ -5,3 +5,7 @@ html, body {
 .button-config .panel {border-width: 4px}
 .button-config .panel.unselected { border-style: dashed;}
 .button-config .panel .pressed { background-color: #d9edf7;}
+
+.axis-config .panel {border-width: 4px}
+.axis-config .panel.unselected { border-style: dashed;}
+.axis-config .panel .pressed { background-color: #d9edf7;}
