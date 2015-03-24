@@ -34,6 +34,19 @@ angular.module('carlpad', [])
 		}
 
 	}])
+	.directive('cpConfigPanel', ['gamepadService', function (gamepadService) {
+		return {
+			scope: {
+				configType: '@cpConfigPanel',
+				gamepad: '=cpGamepadConfig',
+				panelTitle: '@cpConfigPanelTitle'
+			},
+			templateUrl: "html/configuration-panel-directive.html",
+			link: function (scope, element) {
+				console.log('cpconfigpanel ctrl');
+			}
+		}
+	}])
 	.controller('GampadConfigurationCtrl', ['$scope', 'gamepadService', function ($scope, gamepadService) {
 		$scope.gamepad = {
 			connected: false,
