@@ -34,17 +34,25 @@ angular.module('carlpad', [])
 		}
 
 	}])
-	.directive('cpConfigPanel', ['gamepadService', function (gamepadService) {
+	.directive('cpConfigPanel', [function () {
 		return {
 			scope: {
 				configType: '@cpConfigPanel',
 				gamepad: '=cpGamepadConfig',
 				panelTitle: '@cpConfigPanelTitle'
 			},
-			templateUrl: "html/configuration-panel-directive.html",
-			link: function (scope, element) {
-				console.log('cpconfigpanel ctrl');
-			}
+			templateUrl: "html/configuration-panel-directive.html"
+		}
+	}])
+	.directive('cpButtonConfig', [function () {
+		return {
+			scope: {
+				gamepad: '=cpGamepadConfig'
+			},
+			link: function () {
+				console.log('button');
+			},
+			templateUrl: "html/button-configuration-directive.html"
 		}
 	}])
 	.controller('GampadConfigurationCtrl', ['$scope', 'gamepadService', function ($scope, gamepadService) {
