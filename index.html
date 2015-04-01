@@ -15,17 +15,51 @@
         <h3>Control your CARLBot with a gamepad</h3>
       </div>
     </div>
+
+    <div class="panel-body" ng-controller="ComPortCtrl">
+      <div class="panel" ng-class="getPanelClass()">
+        <div class="panel-heading">
+          <div class="panel-title">
+            <h3> COM Port Connection</h3>
+            <button class="btn btn-default" ng-class='getConnectClass()' ng-click='connect()'>Connect</button>
+            <button class="btn btn-default" ng-class='getDisconnectClass()' ng-click='disconnect()'>Disconnect</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="col-md-4">
+            <form class='form-horizontal'>
+              <div class='form-group'>
+                <label for='comPortSelect' class='col-md-4 control-label'>COM Port</label>
+                <div class='col-md-8'>
+                  <select class='form-control' ng-disabled="state !== 'disconnected'" id='comPortSelect' ng-options="comPort as comPort.path for comPort in comPorts" ng-model='selectedComPort'></select>
+                </div>
+              </div>
+              <div class='form-group'>
+                <label for='bitRateSelect' class='col-md-4 control-label'>Bit Rate</label>
+                <div class='col-md-8'>
+                  <select class='form-control' ng-disabled="state !== 'disconnected'" id='bitRateSelect' ng-options="bitRate for bitRate in bitRates" ng-model='selectedBitRate'></select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class='col-md-8 comport-output'>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel-body" ng-controller="GampadConfigurationCtrl">
       <div class="panel" ng-class="{'panel-success': gamepad.connected, 'panel-danger': !gamepad.connected}">
         <div class="panel-heading" >
           <div class="panel-title">
             <h3>Controller Configuration</h3>
             <p ng-if="!gamepad.connected"> Controller Disconnected</p>
+            <h4 ng-if="gamepad.connected">Select the buttons and axes you wish to send to your CARLBot</h4>
             <p ng-if="gamepad.connected"> Controller: {{gamepad.gamepad.id}}</p>
           </div>
         </div>
         <div class="panel-body">
-          <p> {{gamepad}}</p>
           <div ng-if="gamepad.connected">
             <div cp-config-panel="button" cp-gamepad-config="gamepad" cp-config-panel-title="Button Configuration"></div>
             <div cp-config-panel="axis" cp-gamepad-config="gamepad" cp-config-panel-title="Axes Configuration"></div>
