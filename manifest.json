@@ -3,13 +3,13 @@
 	"name": "CARLPad",
 	"version": "1",
 	"icons": {
-		"128": "icon_128.png"
+		"128": "robot-head.png"
 	},
 	"permissions": ["serial"],
 	"app": {
 		"background": {
-			"scripts": ["background.js"]
+		"scripts": ["background.js"]
 		}
 	},
-	"minimum_chrome_version": "28"
+	"minimum_chrome_version": "32"
 }
