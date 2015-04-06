@@ -1,11 +1,11 @@
-<div ng-repeat='button in gamepad.gamepad.buttons' class="col-xs-6 col-sm-5 col-md-4 col-lg-3 button-config">
-  <div class="panel panel-default" ng-class="{'unselected':!gamepad.config.buttons[$index]}">
-    <div class="panel-body container-fluid" ng-class="{'pressed':gamepad.gamepad.buttons[$index].value}">
+<div ng-repeat='button in gamepadData.buttons' class="col-xs-6 col-sm-5 col-md-4 col-lg-3 button-config">
+  <div class="panel panel-default" ng-class="{'unselected':!isSelected($index)}">
+    <div class="panel-body container-fluid" ng-class="{'pressed':gamepadData.buttons[$index].value}">
 
       <div class="row">
         <div class="col-xs-6 col-lg-7">
           <label>
-            <input type="checkbox" ng-model="gamepad.config.buttons[$index]">
+            <input type="checkbox" ng-checked="isSelected($index)" ng-click="toggleButton($index)">
             Button: {{$index +1}}
           </label>
         </div>
@@ -13,7 +13,7 @@
         <div class="col-xs-6 col-lg-5 pull-right">
           <label>
             Value: 
-            <span class="button-value">{{gamepad.gamepad.buttons[$index].value}}</span>
+            <span class="button-value">{{gamepadData.buttons[$index].value}}</span>
           </label>
 
         </div>

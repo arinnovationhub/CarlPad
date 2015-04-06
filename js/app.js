@@ -2,6 +2,10 @@ angular.module('carlpad', [])
 	.factory('gamepadService', ['$rootScope', '$interval', '$filter', function ($rootScope, $interval, $filter) {
 
 		var gamepad;
+		var gamepadConfig = {
+			buttons: [],
+			axes: []
+		}
 
 		function gamepadHandler(event, connecting) {
 
@@ -33,10 +37,101 @@ angular.module('carlpad', [])
 			}
 			gamepad = curGamepad;
 
-		}, 20);
+		}, 1000);
+
+		function getData() {
+			return gamepad;
+		}
+
+		function getMessage() {
+			var data = [];
+			gamepadConfig.buttons.forEach(function (buttonConfig, i) {
+				if (buttonConfig) {
+					data.push(gamepad.buttons[i]);
+				}
+			});
+			gamepadConfig.axes.forEach(function (axesConfig, i) {
+				if (axesConfig) {
+					data.push(gamepad.roundedAxes[i]);
+				}
+			});
+			return data;
+		}
+
+		function addAxisConfig(index) {
+			gamepadConfig.axes[index] = true;
+		}
+
+		function addButtonConfig(index) {
+			gamepadConfig.buttons[index] = true;
+		}
+
+		function removeAxisConfig(index) {
+			gamepadConfig.axes[index] = false;
+		}
+
+		function removeButtonConfig(index) {
+			gamepadConfig.buttons[index] = false;
+		}
+
+		function getConfig() {
+			return gamepadConfig;
+		}
 
 		return {
+			getData: getData,
+			getMessage: getMessage,
+			getConfig: getConfig,
+			addAxisConfig: addAxisConfig,
+			removeAxisConfig: removeAxisConfig,
+			addButtonConfig: addButtonConfig,
+			removeButtonConfig: removeButtonConfig
+		}
 
+	}])
+	.factory('serialService', ['$rootScope', '$q', function ($rootScope, $q) {
+		var connectionInfo;
+		var connectionState = 'disconnected';
+
+		var getDevices = function () {
+			var deferred = $q.defer();
+			chrome.serial.getDevices(function (devices) {
+				deferred.resolve(devices);
+			});
+			return deferred.promise;
+		};
+
+		var connect = function (comPort, bitRate) {
+			connectionState = 'connecting'
+			chrome.serial.connect(comPort, {
+				bitrate: bitRate
+			}, function (connectionInfo) {
+				connectionInfo = connectionInfo;
+				state = 'connected'
+			});
+		}
+
+		var disconnect = function () {
+			state = 'disconnecting'
+			chrome.serial.disconnect($scope.connectionInfo.connectionId, function () {
+				state = 'disconnected';
+			})
+		}
+
+		var write = function () {
+
+		}
+
+		var getConnectionState = function () {
+			return connectionState;
+		}
+
+		return {
+			getDevices: getDevices,
+			connect: connect,
+			disconnect: disconnect,
+			write: write,
+			getConnectionState: getConnectionState
 		}
 
 	}])
@@ -44,100 +139,119 @@ angular.module('carlpad', [])
 		return {
 			scope: {
 				configType: '@cpConfigPanel',
-				gamepad: '=cpGamepadConfig',
 				panelTitle: '@cpConfigPanelTitle'
 			},
 			templateUrl: "html/configuration-panel-directive.html"
 		}
 	}])
-	.directive('cpButtonConfig', [function () {
+	.directive('cpButtonConfig', ['gamepadService', function (gamepadService) {
 		return {
-			scope: {
-				gamepad: '=cpGamepadConfig'
+			scope: {},
+			link: function (scope, elem, attr) {
+				scope.isSelected = function (index) {
+					return !!scope.gamepadConfig.buttons[index];
+				}
+				scope.toggleButton = function (index) {
+					if (!scope.gamepadConfig.buttons[index]) {
+						gamepadService.addButtonConfig(index);
+					} else {
+						gamepadService.removeButtonConfig(index);
+					}
+				}
+				scope.gamepadConfig = gamepadService.getConfig();
+				scope.gamepadData = gamepadService.getData();
 			},
 			templateUrl: "html/button-configuration-directive.html"
 		}
 	}])
-	.directive('cpAxisConfig', [function () {
+	.directive('cpAxisConfig', ['gamepadService', function (gamepadService) {
 		return {
-			scope: {
-				gamepad: '=cpGamepadConfig'
+			scope: {},
+			link: function (scope, elem, attr) {
+				scope.isSelected = function (index) {
+					return !!scope.gamepadConfig.axes[index];
+				}
+
+				scope.toggleAxis = function (index) {
+					if (!scope.gamepadConfig.axes[index]) {
+						gamepadService.addAxisConfig(index);
+
+					} else {
+						gamepadService.removeAxisConfig(index);
+					}
+				}
+
+				scope.gamepadConfig = gamepadService.getConfig();
+				scope.gamepadData = gamepadService.getData();
 			},
 			templateUrl: "html/axis-configuration-directive.html"
 		}
 	}])
-	.controller('ComPortCtrl', ['$scope', function ($scope) {
+	.controller('ComPortCtrl', ['$rootScope', '$scope', 'serialService', 'gamepadService', function ($rootScope, $scope, serialService, gamepadService) {
 		$scope.comPorts = [];
 		$scope.bitRates = [110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200]
 
 		$scope.selectedComPort = null;
 		$scope.selectedBitRate = 9600;
+		$scope.outputBuffer = [];
 
-		$scope.state = 'disconnected';
-		$scope.connectionInfo = null
+		var outputBufferSize = 1000;
 
 		$scope.getConnectClass = function () {
-			if (!!$scope.selectedBitRate && !!$scope.selectedComPort && $scope.state === 'disconnected') return 'btn-success';
-			else return 'disabled';
+			if (!!$scope.selectedBitRate && !!$scope.selectedComPort && serialService.getConnectionState() === 'disconnected') {
+				return 'btn-success';
+			} else return 'disabled';
 		}
 		$scope.getDisconnectClass = function () {
-			if ($scope.state === 'connected') return 'btn-danger';
-			else return 'disabled';
+			if (serialService.getConnectionState() === 'connected') {
+				return 'btn-danger';
+			} else return 'disabled';
 		}
 		$scope.getPanelClass = function () {
-			if ($scope.state === 'connected' || $scope.state === 'disconnecting') return 'panel-success';
+			if (serialService.getConnectionState() === 'connected' || serialService.getConnectionState() === 'disconnecting') {
+				return 'panel-success';
+			}
 			return 'panel-danger'
 		}
 
 		$scope.connect = function () {
-			$scope.state = 'connecting'
-			chrome.serial.connect($scope.selectedComPort.path, {
-				bitrate: $scope.selectedBitRate
-			}, function (connectionInfo) {
-				$scope.connectionInfo = connectionInfo;
-				$scope.state = 'connected'
-			});
+			serialService.connect($scope.selectedComPort.path, $scope.selectedBitRate);
 		}
 
 		$scope.disconnect = function () {
-			$scope.state = 'disconnecting'
-			chrome.serial.disconnect($scope.connectionInfo.connectionId, function () {
-				$scope.state = 'disconnected';
-			})
+			serialService.disconnect();
 		}
 
-		chrome.serial.getDevices(function (devices) {
+		$scope.getState = function () {
+			return serialService.getConnectionState();
+		}
+
+		$rootScope.$on("gamepad:update", function () {
+			var data = gamepadService.getData();
+			//$scope.outputBuffer.push();
+
+		});
+
+		serialService.getDevices().then(function (devices) {
+			$scope.comPorts.length = 0;
 			devices.forEach(function (device) {
 				$scope.comPorts.push(device);
 			});
 		});
+
 	}])
 	.controller('GampadConfigurationCtrl', ['$scope', 'gamepadService', function ($scope, gamepadService) {
-		$scope.gamepad = {
-			connected: false,
-			config: {
-				buttons: [],
-				axes: []
-			}
-		}
+		$scope.gamepadConfig = gamepadService.getConfig();
+		$scope.gamepadData = null;
+		$scope.gamepadConnected = false;
 
 		$scope.$on('gamepad:connected', function (e, data) {
-			console.log('connected!')
-			$scope.gamepad.connected = true;
-			$scope.gamepad.gamepad = data
-
+			$scope.gamepadConnected = true;
+			$scope.gamepadData = data
 		});
 
 		$scope.$on('gamepad:disconnected', function () {
-			$scope.gamepad.connected = false;
-			$scope.gamepad.gamepad = null
+			$scope.gamepadConnected = false;
+			$scope.gamepadData = null
 		});
-
-		$scope.$on('gamepad:update', function (e, gamepad) {
-			$scope.gamepad.gamepad.buttons.forEach(function (button, i) {
-				button.value = gamepad.buttons[i].value;
-				button.pressed = gamepad.buttons[i].pressed;
-			})
-		})
-
 	}]);
