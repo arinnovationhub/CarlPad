@@ -37,7 +37,7 @@ angular.module('carlpad', [])
 			}
 			gamepad = curGamepad;
 
-		}, 1000);
+		}, 250);
 
 		function getData() {
 			return gamepad;
@@ -47,23 +47,31 @@ angular.module('carlpad', [])
 			var data = [];
 			gamepadConfig.buttons.forEach(function (buttonConfig, i) {
 				if (buttonConfig) {
-					data.push(gamepad.buttons[i]);
+					data.push(buttonConfig.getValue());
 				}
 			});
 			gamepadConfig.axes.forEach(function (axesConfig, i) {
 				if (axesConfig) {
-					data.push(gamepad.roundedAxes[i]);
+					data.push(axesConfig.getValue());
 				}
 			});
 			return data;
 		}
 
 		function addAxisConfig(index) {
-			gamepadConfig.axes[index] = true;
+			gamepadConfig.axes[index] = {
+				getValue: function () {
+					return mapServo(getData().roundedAxes[index]);
+				}
+			};
 		}
 
 		function addButtonConfig(index) {
-			gamepadConfig.buttons[index] = true;
+			gamepadConfig.buttons[index] = {
+				getValue: function () {
+					return getData().buttons[index].value;
+				}
+			};
 		}
 
 		function removeAxisConfig(index) {
@@ -76,6 +84,14 @@ angular.module('carlpad', [])
 
 		function getConfig() {
 			return gamepadConfig;
+		}
+
+		function mapServo(value) {
+			return mapRange(value, -1, 1, 0, 180);
+		}
+
+		function mapRange(value, inMin, inMax, outMin, outMax) {
+			return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 		}
 
 		return {
@@ -187,13 +203,30 @@ angular.module('carlpad', [])
 			templateUrl: "html/axis-configuration-directive.html"
 		}
 	}])
+	.directive('cpComportOutput', ['$rootScope', 'gamepadService', function ($rootScope, gamepadService) {
+		return {
+			scope: {},
+			link: function (scope, elem, attr) {
+				scope.outputBuffer = [];
+				var outputBufferLength = 100;
+				$rootScope.$on("gamepad:update", function () {
+					scope.outputBuffer.push(gamepadService.getMessage());
+					while (scope.outputBuffer.length > outputBufferLength) {
+						scope.outputBuffer.shift();
+					}
+					var scrollElement = elem.children()[0];
+					scrollElement.scrollTop = scrollElement.scrollHeight;
+				});
+			},
+			templateUrl: "html/comport-output.html"
+		}
+	}])
 	.controller('ComPortCtrl', ['$rootScope', '$scope', 'serialService', 'gamepadService', function ($rootScope, $scope, serialService, gamepadService) {
 		$scope.comPorts = [];
 		$scope.bitRates = [110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200]
 
 		$scope.selectedComPort = null;
 		$scope.selectedBitRate = 9600;
-		$scope.outputBuffer = [];
 
 		var outputBufferSize = 1000;
 
@@ -225,12 +258,6 @@ angular.module('carlpad', [])
 		$scope.getState = function () {
 			return serialService.getConnectionState();
 		}
-
-		$rootScope.$on("gamepad:update", function () {
-			var data = gamepadService.getData();
-			//$scope.outputBuffer.push();
-
-		});
 
 		serialService.getDevices().then(function (devices) {
 			$scope.comPorts.length = 0;

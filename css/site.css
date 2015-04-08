@@ -2,7 +2,7 @@ html, body {
     overflow-y: visible;
 }
 
-.comport-output {border: 1px solid black; max-height: 300px; min-height: 300px}
+.comport-output {border: 1px solid black; max-height: 300px; min-height: 300px; overflow: scroll;}
 
 .button-config .panel {border-width: 4px}
 .button-config .panel.unselected { border-style: dashed;}
