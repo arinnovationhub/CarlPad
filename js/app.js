@@ -33,7 +33,7 @@ angular.module('carlpad', [])
 			} else if (!gamepad && curGamepad) {
 				$rootScope.$broadcast('gamepad:connected', curGamepad)
 			} else if (curGamepad) {
-				$rootScope.$broadcast('gamepad:update', curGamepad)
+				$rootScope.$broadcast('gamepad:update', transformData(), curGamepad)
 			}
 			gamepad = curGamepad;
 
@@ -43,7 +43,7 @@ angular.module('carlpad', [])
 			return gamepad;
 		}
 
-		function getMessage() {
+		function transformData() {
 			var data = [];
 			gamepadConfig.buttons.forEach(function (buttonConfig, i) {
 				if (buttonConfig) {
@@ -55,7 +55,10 @@ angular.module('carlpad', [])
 					data.push(axesConfig.getValue());
 				}
 			});
-			return data;
+
+			return data.map(function (value) {
+				return value.toString()
+			}).join(",") + "\n";
 		}
 
 		function addAxisConfig(index) {
@@ -87,16 +90,15 @@ angular.module('carlpad', [])
 		}
 
 		function mapServo(value) {
-			return mapRange(value, -1, 1, 0, 180);
+			return mapRange(value * 100, -100, 100, 0, 180);
 		}
 
 		function mapRange(value, inMin, inMax, outMin, outMax) {
-			return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+			return Math.round((value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin)
 		}
 
 		return {
 			getData: getData,
-			getMessage: getMessage,
 			getConfig: getConfig,
 			addAxisConfig: addAxisConfig,
 			removeAxisConfig: removeAxisConfig,
@@ -119,34 +121,52 @@ angular.module('carlpad', [])
 
 		var connect = function (comPort, bitRate) {
 			connectionState = 'connecting'
-			chrome.serial.connect(comPort, {
-				bitrate: bitRate
-			}, function (connectionInfo) {
-				connectionInfo = connectionInfo;
-				state = 'connected'
-			});
+			try {
+				chrome.serial.connect(comPort, {
+					bitrate: bitRate
+				}, function (info) {
+					connectionInfo = info;
+					connectionState = 'connected'
+				})
+			} catch (err) {
+				connectionState = 'disconnected';
+				console.log(err);
+			}
 		}
 
 		var disconnect = function () {
-			state = 'disconnecting'
-			chrome.serial.disconnect($scope.connectionInfo.connectionId, function () {
-				state = 'disconnected';
+			connectionState = 'disconnecting'
+			chrome.serial.disconnect(connectionInfo.connectionId, function () {
+				connectionState = 'disconnected';
+				connectionInfo = null;
 			})
-		}
-
-		var write = function () {
-
 		}
 
 		var getConnectionState = function () {
 			return connectionState;
 		}
 
+		$rootScope.$on('gamepad:update', function (event, message, rawData) {
+			if (connectionState == 'connected') {
+				chrome.serial.send(connectionInfo.connectionId, convertStringToArrayBuffer(message), function () {
+
+				})
+			}
+		});
+
+		function convertStringToArrayBuffer(str) {
+			var buf = new ArrayBuffer(str.length);
+			var bufView = new Uint8Array(buf);
+			for (var i = 0; i < str.length; i++) {
+				bufView[i] = str.charCodeAt(i);
+			}
+			return buf;
+		}
+
 		return {
 			getDevices: getDevices,
 			connect: connect,
 			disconnect: disconnect,
-			write: write,
 			getConnectionState: getConnectionState
 		}
 
@@ -209,8 +229,8 @@ angular.module('carlpad', [])
 			link: function (scope, elem, attr) {
 				scope.outputBuffer = [];
 				var outputBufferLength = 100;
-				$rootScope.$on("gamepad:update", function () {
-					scope.outputBuffer.push(gamepadService.getMessage());
+				$rootScope.$on("gamepad:update", function (event, message, rawData) {
+					scope.outputBuffer.push(message);
 					while (scope.outputBuffer.length > outputBufferLength) {
 						scope.outputBuffer.shift();
 					}
@@ -241,7 +261,8 @@ angular.module('carlpad', [])
 			} else return 'disabled';
 		}
 		$scope.getPanelClass = function () {
-			if (serialService.getConnectionState() === 'connected' || serialService.getConnectionState() === 'disconnecting') {
+			var currentState = serialService.getConnectionState();
+			if (currentState === 'connected' || currentState === 'disconnecting') {
 				return 'panel-success';
 			}
 			return 'panel-danger'
