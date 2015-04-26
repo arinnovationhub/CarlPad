@@ -11,3 +11,6 @@ html, body {
 .axis-config .panel {border-width: 4px}
 .axis-config .panel.unselected { border-style: dashed;}
 .axis-config .panel .pressed { background-color: #d9edf7;}
+
+.config-panel-title .fa{ font-size: 4em; vertical-align: bottom; margin-right: 15px}
+.config-panel-title .config-title-header {font-size: 2em}
