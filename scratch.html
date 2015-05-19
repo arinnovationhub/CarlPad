@@ -1,0 +1,22 @@
+    <div class="panel-body" ng-controller="GampadConfigurationCtrl">
+      <div class="panel" ng-class="{'panel-success': gamepadConnected, 'panel-danger': !gamepadConnected}">
+        <div class="panel-heading" >
+          <div class="panel-title config-panel-title">
+            <span class="fa fa-gamepad"> </span>
+            <span class="config-title-header">Controller Configuration</span>
+            <div>
+              <p ng-if="!gamepadConnected"> Controller Disconnected. To connect a controller, plug it in and press a button.</p>
+              <h4 ng-if="gamepadConnected">Select the buttons and axes you wish to send to your CARLBot</h4>
+              <p ng-if="gamepadConnected"> Controller: {{gamepadData.id}}</p>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div ng-if="gamepadConnected">
+            <div cp-config-panel="axis" cp-config-panel-title="Axes Configuration"></div>
+            <div cp-config-panel="button" cp-config-panel-title="Button Configuration"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

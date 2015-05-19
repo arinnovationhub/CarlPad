@@ -16,64 +16,60 @@
         <h3>Control your robot with a gamepad</h3>
       </div>
     </div>
-
-    <div class="panel-body" ng-controller="ComPortCtrl">
-      <div class="panel" ng-class="getPanelClass()">
-        <div class="panel-heading">
-          <div class="panel-title config-panel-title">
-            <span class="fa fa-exchange"> </span>
-            <span class="config-title-header"> COM Port Connection</span>
-            <div>
-              <button class="btn btn-default" ng-class='getConnectClass()' ng-click='connect()'>Connect</button>
-              <button class="btn btn-default" ng-class='getDisconnectClass()' ng-click='disconnect()'>Disconnect</button>
+    
+    <div class="row">
+    
+    <div class="panel-body">
+      <div class="col-md-4">
+        <div cp-controller-selection></div>
+      </div>
+      
+      
+      <div class="col-md-4">
+        <div class="panel  panel-default" ng-controller="ComPortCtrl">
+          <div class="panel-heading">
+            <div class="panel-title">
+              <h3>COM Port Connection</h3>
             </div>
           </div>
-        </div>
-        <div class="panel-body">
-          <div class="col-md-4">
+          <div class="panel-body">
             <form class='form-horizontal'>
               <div class='form-group'>
                 <label for='comPortSelect' class='col-md-4 control-label'>COM Port</label>
-                <div class='col-md-8'>
+                <div class="col-md-8">
                   <select class='form-control' ng-disabled="getState() !== 'disconnected'" id='comPortSelect' ng-options="comPort as comPort.path for comPort in comPorts" ng-model='selectedComPort'></select>
                 </div>
               </div>
               <div class='form-group'>
                 <label for='bitRateSelect' class='col-md-4 control-label'>Bit Rate</label>
-                <div class='col-md-8'>
-                  <select class='form-control' ng-disabled="getState() !== 'disconnected'" id='bitRateSelect' ng-options="bitRate for bitRate in bitRates" ng-model='selectedBitRate'></select>
+                <div class="col-md-8">
+                   <select class='form-control' ng-disabled="getState() !== 'disconnected'" id='bitRateSelect' ng-options="bitRate for bitRate in bitRates" ng-model='selectedBitRate'></select>
                 </div>
               </div>
             </form>
           </div>
-          <div class='col-md-8'>
+          <div class="panel-footer">
+            <button class="btn btn-default" ng-class='getConnectClass()' ng-click='connect()'>Connect</button>
+            <button class="btn btn-default" ng-class='getDisconnectClass()' ng-click='disconnect()'>Disconnect</button>
+          </div>
+        </div>
+      </div>
+    
+      <div class="col-md-4">
+        <div class="panel  panel-default">
+          <div class="panel-heading">
+            <div class="panel-title">
+              <h3>Output</h3>
+            </div>
+          </div>
+          <div class="panel-body">
             <div cp-comport-output></div>
           </div>
         </div>
       </div>
+      
     </div>
-
-    <div class="panel-body" ng-controller="GampadConfigurationCtrl">
-      <div class="panel" ng-class="{'panel-success': gamepadConnected, 'panel-danger': !gamepadConnected}">
-        <div class="panel-heading" >
-          <div class="panel-title config-panel-title">
-            <span class="fa fa-gamepad"> </span>
-            <span class="config-title-header">Controller Configuration</span>
-            <div>
-              <p ng-if="!gamepadConnected"> Controller Disconnected. To connect a controller, plug it in and press a button.</p>
-              <h4 ng-if="gamepadConnected">Select the buttons and axes you wish to send to your CARLBot</h4>
-              <p ng-if="gamepadConnected"> Controller: {{gamepadData.id}}</p>
-            </div>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div ng-if="gamepadConnected">
-            <div cp-config-panel="axis" cp-config-panel-title="Axes Configuration"></div>
-            <div cp-config-panel="button" cp-config-panel-title="Button Configuration"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
   </div>
 </body>
 </html>
