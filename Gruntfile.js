@@ -4,12 +4,12 @@ module.exports = function (grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 		concat: {
 			dist: {
-				src: ['js/app.js', 'js/**/*.js'],
+				src: ['script/app.js', 'script/**/*.js'],
 				dest: 'Build/app.js'
 			}
 		},
 		jshint: {
-			all: ['js/**/*.js']
+			all: ['script/**/*.js']
 		}
 	})
 
